@@ -94,8 +94,15 @@ document.addEventListener('mouseup', () => isDragging = false);
 
 async function stampDocument() {
     const base64Image = sigCanvas.toDataURL("image/png");
+    
     const currentX = parseFloat(box.style.left) || 50;
     const currentY = parseFloat(box.style.top) || 50;
+
+    const PDF_SCALE = 1.5;
+
+    const pdfX = screenX / PDF_SCALE;
+    const pdfY = screenY / PDF_SCALE;
+    
     const response = await fetch('/stamp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

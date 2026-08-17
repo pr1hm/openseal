@@ -12,10 +12,11 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     background: white;
     margin-top: 20px;
+    display:inline-block;
 }
 
 #sig-box {
-    postion: absolute;
+    position: absolute;
     top: 50px;
     left: 50px;
     width: 150px;
@@ -31,7 +32,7 @@ body {
     user-select: none;
 }
 
-@sig-box:active {
+#sig-box:active {
     cursor: grabbing;
 }
 
