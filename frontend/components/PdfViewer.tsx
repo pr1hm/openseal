@@ -17,7 +17,6 @@ export default function PdfViewer() {
     console.log("PDF loaded! Total pages:", numPages);
     setNumPages(numPages);
   }
-
   return (
     <div className="flex flex-col items-center w-full">
       <div className="bg-white shadow-xl border border-neutral-300 p-4 max-w-4xl w-full flex justify-center">

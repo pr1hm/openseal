@@ -1,0 +1,36 @@
+body {
+    font-family: sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-itmes: center;
+    padding: 20px;
+}
+
+#pdf-container {
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: white;
+    margin-top: 20px;
+}
+
+#sig-box {
+    postion: absolute;
+    top: 50px;
+    left: 50px;
+    width: 150px;
+    height: 50px;
+    border: 1px dashed red;
+    background: rgba(2555, 0, 0, 0.2);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: red;
+    user-select: none;
+}
+
+@sig-box:active {
+    cursor: grabbing;
+}
