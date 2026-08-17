@@ -34,3 +34,24 @@ body {
 @sig-box:active {
     cursor: grabbing;
 }
+
+#sig-pad-container {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#sig-canvas {
+    border: 2px solid #333;
+    background: white;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor:pointer;
+}

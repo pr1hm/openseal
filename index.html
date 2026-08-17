@@ -6,31 +6,8 @@
     <title>OpenSeal Prototype</title>
     <!-- Load vanilla PDF.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #f0f0f0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        /* The container holding the PDF and the signature box */
-        #pdf-container {
-            position: relative; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            background: white;
-            margin-top: 20px;
-        }
-
-        /* The signature box the admin drags around */
-        #sig-box {
-            position: absolute;
-            top: 50px; left: 50px;
-            width: 150px; height: 50px;
-            border: 2px dashed red;
-            background: rgba(255, 0, 0, 0.2);
-            cursor: grab;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; color: red;
-            user-select: none;
-        }
-        #sig-box:active { cursor: grabbing; }
-    </style>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 
@@ -43,56 +20,14 @@
         <!-- The draggable box -->
         <div id="sig-box">Sign Here</div>
     </div>
-
-    <script>
-        // 1. Setup PDF.js Worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-        // 2. Fetch and render the PDF
-        const url = '/dummy.pdf';
-        const canvas = document.getElementById('pdf-render');
-        const ctx = canvas.getContext('2d');
-
-        pdfjsLib.getDocument(url).promise.then(pdf => {
-            console.log("PDF Loaded!");
-            // Load page 1
-            return pdf.getPage(1);
-        }).then(page => {
-            const viewport = page.getViewport({ scale: 1.5 });
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            // Render it onto the canvas
-            const renderContext = { canvasContext: ctx, viewport: viewport };
-            page.render(renderContext);
-        }).catch(err => console.error("PDF Error:", err));
-
-        // 3. Make the red box draggable
-        const box = document.getElementById('sig-box');
-        const coordsText = document.getElementById('coords');
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        box.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - box.offsetLeft;
-            offsetY = e.clientY - box.offsetTop;
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            // Calculate new X/Y relative to the PDF container
-            let newX = e.clientX - offsetX;
-            let newY = e.clientY - offsetY;
-            
-            box.style.left = newX + 'px';
-            box.style.top = newY + 'px';
-            
-            // Update UI to show we got the coordinates
-            coordsText.innerText = `X: ${newX}, Y: ${newY}`;
-        });
-
-        document.addEventListener('mouseup', () => isDragging = false);
-    </script>
+    <div id="sig-pad-container">
+        <h2>Signer View: Draw Your Signature</h2>
+        <canvas id="sig-canvas" width="400" height="150"></canvas>
+        <div>
+            <button onclick="clearCanvas()">Clear</button>
+            <button onclick="stampDocument()">Save & Stamp Document</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
