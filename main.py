@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 app = FastAPI()
@@ -24,7 +25,7 @@ class StampData(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    index_path = os.path.join(BASE_DIR, "index.html")
+    index_path = os.path.join(TEMPLATES_DIR, "index.html")
     with open(index_path, "r") as f:
         return f.read()
 
