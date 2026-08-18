@@ -1,1 +1,11 @@
-.signed_dummy.pdf
+.venv/
+venv/
+env/
+
+__pycache__/
+*.pyc
+
+*.sqlite
+*.db
+
+static/signed_*.pdf
