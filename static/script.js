@@ -45,7 +45,7 @@ function clearCanvas() {
     sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
 }
 
-const url = './dummy.pdf';
+const url = '/static/dummy.pdf';
 const canvas = document.getElementById('pdf-render');
 const ctx = canvas.getContext('2d');
 

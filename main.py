@@ -9,6 +9,10 @@ import uvicorn
 app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 class StampData(BaseModel):
     x:float
@@ -26,8 +30,8 @@ def read_root():
 
 @app.post("/stamp")
 def stamp_pdf(data:StampData):
-    input_pdf = os.path.join(BASE_DIR, "dummy.pdf")
-    output_pdf = os.path.join(BASE_DIR, "signed_dummy.pdf")
+    input_pdf = os.path.join(STATIC_DIR, "dummy.pdf")
+    output_pdf = os.path.join(STATIC_DIR, "signed_dummy.pdf")
 
     header, encoded = data.image_base64.split(",", 1)
     image_bytes = base64.b64decode(encoded)
@@ -36,13 +40,12 @@ def stamp_pdf(data:StampData):
     page = doc[data.page_num - 1]
 
     rect = fitz.Rect(data.x, data.y,data.x + data.width, data.y + data.height)
-
     page.insert_image(rect, stream=image_bytes)
 
     doc.save(output_pdf)
     doc.close()
 
-    return {"message":"Success","file":"signed_dummy.pdf"}
+    return {"message":"Success","file":"/static/signed_dummy.pdf"}
 
 @app.get("/{filename}")
 def serve_static_file(filename: str):
