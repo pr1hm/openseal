@@ -27,13 +27,8 @@ init_db()
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-class StampData(BaseModel):
-    x:float
-    y:float
-    width: float
-    height:float
-    page_num: int
-    image_base64:str
+class SignData(BaseModel):
+    image_base64: str
 
 class LinkRequest(BaseModel):
     x: float
@@ -60,24 +55,60 @@ def generate_link(data: LinkRequest):
 
     return {"link": f"http://localhost:800/sign/{doc_id}"}
 
-@app.post("/stamp")
-def stamp_pdf(data:StampData):
-    input_pdf = os.path.join(STATIC_DIR, "dummy.pdf")
-    output_pdf = os.path.join(STATIC_DIR, "signed_dummy.pdf")
+@app.get("/sign/{doc_id}", response_class=HTMLResponse)
+def sign_page(doc_id: str):
+    path = os.path.join(TEMPLATES_DIR, "signer.html")
+    with open(path, "r") as f:
+        return f.read()
+
+@app.get("/api/doc/{doc_id}")
+def get_document_info(doc_id: str):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT x, y, width, height, page_num, status FROM requests WHERE id=?", (doc_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return {
+        "x": row[0], "y": row[1], "width": row[2], "height": row[3], "page_num": row[4], "status": row[5]
+    }
+
+@app.post("/stamp/{doc_id}")
+def sign_document(doc_id: str, data: SignData):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT x, y, width, height, page_num, status FROM requests WHERE id=?", (doc_id,))
+    row = cursor.fetchone()
+
+    if not row or row[5] == 'signed':
+        conn.close()
+        raise HTTPException(status_code=400, detail="Invalid or already signed document.")
+
+    x, y, width, height, page_num, status = row
 
     header, encoded = data.image_base64.split(",", 1)
     image_bytes = base64.b64decode(encoded)
 
-    doc = fitz.open(input_pdf)
-    page = doc[data.page_num - 1]
+    input_pdf = os.path.join(STATIC_DIR, "dummy.pdf")
+    output_pdf = os.path.join(STATIC_DIR, f"signed_{doc_id}.pdf")
 
-    rect = fitz.Rect(data.x, data.y,data.x + data.width, data.y + data.height)
+    doc = fitz.open(input_pdf)
+    page = doc[page_num - 1]
+
+    rect = fitz.Rect(x, y, x + width, y + height)
     page.insert_image(rect, stream=image_bytes)
 
     doc.save(output_pdf)
     doc.close()
 
-    return {"message":"Success","file":"/static/signed_dummy.pdf"}
+    cursor.execute("UPDATE requests SET status='signed' WHERE id=?", (doc_id,))
+    conn.commit()
+    conn.close()
+
+    return {"message": "Success","file": f"/static/signed_{doc_id}.pdf"}
 
 @app.get("/{filename}")
 def serve_static_file(filename: str):

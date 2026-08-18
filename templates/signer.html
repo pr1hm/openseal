@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenSeal - Sign Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-8">
+    <h2 class="text-2xl font-bold mb-4" id="status-text">Please sign the document below</h2>
+    <div id="pdf-container" style="position: relative; display:inline-block;">
+        <canvas id="pdf-render" class="shadow-xl bg-white"></canvas>
+        <div id="target-box"></div>
+    </div>
+    <div id="sig-pad-container" class="mt-8 flex flex-col items-center">
+        <h3 class="font-bold mb-2">Draw Your Signature</h3>
+        <canvas id="sig-canvas" width="400" height="150" class="border-2 border-gray-800 bg-white cursor-crosshair"></canvas>
+        <div class="mt-4 gap-4 flex">
+            <button class="bg-gray-300 px-4 py-2 rounded shadow" onclick="clearCanvas()">Clear</button>
+            <button class="bg-blue-600 text-white px-4 py-2 rounded shadow" onclick="submitSignature()">Sign Document</button>
+        </div>
+    </div>
+
+    <script src="/static/signer.js"></script>
+</body>
+</html>
