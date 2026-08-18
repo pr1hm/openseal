@@ -1,7 +1,9 @@
-
 const sigCanvas = document.getElementById('sig-canvas');
 const sigCtx = sigCanvas.getContext('2d');
 let isDrawing = false;
+let pdfDoc = null;
+let pageNum = 1;
+let CURRENT_SCALE = 1.0;
 
 sigCtx.lineWidth = 3;
 sigCtx.lineCap = 'round';
@@ -43,29 +45,75 @@ function clearCanvas() {
     sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
 }
 
-// 1. Setup PDF.js Worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-// 2. Fetch and render the PDF
-const url = '/dummy.pdf';
+const url = './dummy.pdf';
 const canvas = document.getElementById('pdf-render');
 const ctx = canvas.getContext('2d');
 
+function renderPage(num){
+    pdfDoc.getPage(num).then(page => {
+        const unscaledViewport = page.getViewport({scale:1.0});
+        const targetHeight= window.innerHeight*0.8;
+        CURRENT_SCALE = targetHeight / unscaledViewport.height;
+
+        const viewport = page.getViewport({scale: CURRENT_SCALE});
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = { canvasContext: ctx, viewport: viewport };
+        page.render(renderContext);
+
+        document.getElementById('page-info').innerText = `Page ${num} of ${pdfDoc.numPages}`;
+    })
+}
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
 pdfjsLib.getDocument(url).promise.then(pdf => {
     console.log("PDF Loaded!");
-    // Load page 1
-    return pdf.getPage(1);
-}).then(page => {
-    const viewport = page.getViewport({ scale: 1.5 });
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-
-    // Render it onto the canvas
-    const renderContext = { canvasContext: ctx, viewport: viewport };
-    page.render(renderContext);
+    pdfDoc = pdf;
+    renderPage(pageNum);
 }).catch(err => console.error("PDF Error:", err));
 
-// 3. Make the red box draggable
+document.getElementById('prev-page').addEventListener('click', () => {
+    if (pageNum <= 1) return;
+    pageNum--;
+    renderPage(pageNum);
+});
+
+document.getElementById('next-page').addEventListener('click', () => {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    renderPage(pageNum);
+});
+
+async function stampDocument() {
+    const base64Image = sigCanvas.toDataURL("image/png");
+    const canvasRect = document.getElementById('pdf-render').getBoundingClientRect();
+    const boxRect = document.getElementById('sig-box').getBoundingClientRect();
+    const relativeX = boxRect.left - canvasRect.left;
+    const relativeY = boxRect.top - canvasRect.top;
+    const pdfX = relativeX / CURRENT_SCALE;
+    const pdfY = relativeY / CURRENT_SCALE;
+    const pdfWidth = 150 / CURRENT_SCALE;
+    const pdfHeight = 50 / CURRENT_SCALE;
+
+    const response = await fetch('/stamp' , {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            x: pdfX,
+            y: pdfY,
+            width: pdfWidth,
+            height: pdfHeight,
+            page_num: pageNum,
+            image_base64: base64Image
+        })
+    });
+
+    const result = await response.json();
+    alert("Document Signed! Saved as: " + result.file);
+}
+
 const box = document.getElementById('sig-box');
 const coordsText = document.getElementById('coords');
 let isDragging = false;
@@ -92,27 +140,3 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseup', () => isDragging = false);
 
-async function stampDocument() {
-    const base64Image = sigCanvas.toDataURL("image/png");
-    
-    const currentX = parseFloat(box.style.left) || 50;
-    const currentY = parseFloat(box.style.top) || 50;
-
-    const PDF_SCALE = 1.5;
-
-    const pdfX = screenX / PDF_SCALE;
-    const pdfY = screenY / PDF_SCALE;
-    
-    const response = await fetch('/stamp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            x: currentX,
-            y: currentY,
-            image_base64: base64Image
-        })
-    });
-
-    const result = await response.json();
-    alert("Document Signed! Saved as: " + result.file);
-}

@@ -13,6 +13,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 class StampData(BaseModel):
     x:float
     y:float
+    width: float
+    height:float
+    page_num: int
     image_base64:str
 
 @app.get("/", response_class=HTMLResponse)
@@ -30,9 +33,9 @@ def stamp_pdf(data:StampData):
     image_bytes = base64.b64decode(encoded)
 
     doc = fitz.open(input_pdf)
-    page = doc[0]
+    page = doc[data.page_num - 1]
 
-    rect = fitz.Rect(data.x, data.y,data.x + 150,data.y + 50)
+    rect = fitz.Rect(data.x, data.y,data.x + data.width, data.y + data.height)
 
     page.insert_image(rect, stream=image_bytes)
 

@@ -14,6 +14,11 @@
     <h2>Admin View: Drag the Signature Box</h2>
     <p>Coordinates: <span id="coords">X: 50, Y: 50</span></p>
 
+    <div id="pagination-controls">
+        <button id="prev-page" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">Previous</button>
+        <span id="page-info" class="font-bold">Page 1</span>
+        <button id="next-page" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">Next</button>
+    </div>
     <div id="pdf-container">
         <!-- The PDF renders here -->
         <canvas id="pdf-render"></canvas>

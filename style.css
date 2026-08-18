@@ -3,7 +3,7 @@ body {
     background: #f0f0f0;
     display: flex;
     flex-direction: column;
-    align-itmes: center;
+    align-items: center;
     padding: 20px;
 }
 
@@ -22,7 +22,7 @@ body {
     width: 150px;
     height: 50px;
     border: 1px dashed red;
-    background: rgba(2555, 0, 0, 0.2);
+    background: rgba(255, 0, 0, 0.2);
     cursor: grab;
     display: flex;
     align-items: center;
