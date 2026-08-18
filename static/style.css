@@ -30,6 +30,12 @@ body {
     font-weight: bold;
     color: red;
     user-select: none;
+    z-index: 10;
+
+    resize: both;
+    overflow: hidden;
+    min-width: 80px;
+    min-height: 40px;
 }
 
 #sig-box:active {

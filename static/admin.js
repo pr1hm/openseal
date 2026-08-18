@@ -1,49 +1,6 @@
-const sigCanvas = document.getElementById('sig-canvas');
-const sigCtx = sigCanvas.getContext('2d');
-let isDrawing = false;
 let pdfDoc = null;
 let pageNum = 1;
 let CURRENT_SCALE = 1.0;
-
-sigCtx.lineWidth = 3;
-sigCtx.lineCap = 'round';
-sigCtx.strokeStyle = 'black';
-
-function startDrawing(e) {
-    isDrawing = true;
-    draw(e);
-}
-
-function stopDrawing() {
-    isDrawing = false;
-    sigCtx.beginPath();
-}
-
-function draw(e) {
-    if (!isDrawing) return;
-
-    const rect = sigCanvas.getBoundingClientRect();
-    const clientX = e.clientX || e.touches[0].clientX;
-    const clientY = e.clientY || e.touches[0].clientY;
-
-    sigCtx.lineTo(clientX - rect.left, clientY - rect.top);
-    sigCtx.stroke();
-    sigCtx.beginPath();
-    sigCtx.moveTo(clientX - rect.left, clientY - rect.top);
-}
-
-sigCanvas.addEventListener('mousedown', startDrawing);
-sigCanvas.addEventListener('mousemove', draw);
-sigCanvas.addEventListener('mouseup', stopDrawing);
-sigCanvas.addEventListener('mouseout', stopDrawing);
-
-sigCanvas.addEventListener('touchstart', startDrawing);
-sigCanvas.addEventListener('touchmove', draw);
-sigCanvas.addEventListener('touchend', stopDrawing);
-
-function clearCanvas() {
-    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-}
 
 const url = '/static/dummy.pdf';
 const canvas = document.getElementById('pdf-render');
@@ -86,18 +43,19 @@ document.getElementById('next-page').addEventListener('click', () => {
     renderPage(pageNum);
 });
 
-async function stampDocument() {
-    const base64Image = sigCanvas.toDataURL("image/png");
+async function generateLink() {
     const canvasRect = document.getElementById('pdf-render').getBoundingClientRect();
     const boxRect = document.getElementById('sig-box').getBoundingClientRect();
+
     const relativeX = boxRect.left - canvasRect.left;
     const relativeY = boxRect.top - canvasRect.top;
+
     const pdfX = relativeX / CURRENT_SCALE;
     const pdfY = relativeY / CURRENT_SCALE;
-    const pdfWidth = 150 / CURRENT_SCALE;
-    const pdfHeight = 50 / CURRENT_SCALE;
+    const pdfWidth = boxRect.width / CURRENT_SCALE;
+    const pdfHeight = boxRect.height / CURRENT_SCALE;
 
-    const response = await fetch('/stamp' , {
+    const response = await fetch('/generate-link' , {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -105,13 +63,12 @@ async function stampDocument() {
             y: pdfY,
             width: pdfWidth,
             height: pdfHeight,
-            page_num: pageNum,
-            image_base64: base64Image
+            page_num: pageNum
         })
     });
 
     const result = await response.json();
-    alert("Document Signed! Saved as: " + result.file);
+    prompt("Signature request created! Copy this link to send to the signer:", result.link);
 }
 
 const box = document.getElementById('sig-box');
@@ -120,6 +77,8 @@ let isDragging = false;
 let offsetX, offsetY;
 
 box.addEventListener('mousedown', (e) => {
+    if (e.offsetX > box.offsetWidth - 20 && e.offsetY > box.offsetHeight - 20) return;
+
     isDragging = true;
     offsetX = e.clientX - box.offsetLeft;
     offsetY = e.clientY - box.offsetTop;

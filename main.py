@@ -6,12 +6,24 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+import sqlite3
+import uuid
 
 app = FastAPI()
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+DB_FILE = os.path.join(BASE_DIR, "signatures.db")
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, x REAL, y REAL, width REAL, height REAL, page_num INTEGER, status TEXT DEFAULT 'pending')")
+    conn.commit()
+    conn.close()
+
+init_db()
+
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -23,11 +35,30 @@ class StampData(BaseModel):
     page_num: int
     image_base64:str
 
+class LinkRequest(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+    page_num: int
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    index_path = os.path.join(TEMPLATES_DIR, "index.html")
+    index_path = os.path.join(TEMPLATES_DIR, "admin.html")
     with open(index_path, "r") as f:
         return f.read()
+
+@app.post("/generate-link")
+def generate_link(data: LinkRequest):
+    doc_id=str(uuid.uuid4())
+
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO requests (id, x, y, width, height, page_num) VALUES (?, ?, ?, ?, ?, ?)", (doc_id, data.x, data.y, data.width, data.height, data.page_num))
+    conn.commit()
+    conn.close()
+
+    return {"link": f"http://localhost:800/sign/{doc_id}"}
 
 @app.post("/stamp")
 def stamp_pdf(data:StampData):
