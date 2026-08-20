@@ -20,7 +20,7 @@ DB_FILE = os.path.join(BASE_DIR, "signatures.db")
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, filename TEXT, x REAL, y REAL, width REAL, height REAL, page_num INTEGER, status TEXT DEFAULT 'pending')")
+    cursor.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, filename TEXT, x REAL, y REAL, width REAL, height REAL, page_num INTEGER, status TEXT DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     conn.commit()
     conn.close()
 
@@ -42,6 +42,12 @@ class LinkRequest(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
+    index_path = os.path.join(TEMPLATES_DIR, "dashboard.html")
+    with open(index_path, "r") as f:
+        return f.read()
+
+@app.get("/new-request", response_class=HTMLResponse)
+def new_request_page():
     index_path = os.path.join(TEMPLATES_DIR, "admin.html")
     with open(index_path, "r") as f:
         return f.read()
@@ -125,6 +131,17 @@ def sign_document(doc_id: str, data: SignData):
     conn.close()
 
     return {"message": "Success","file": f"/static/signed_{doc_id}.pdf"}
+
+@app.get("/api/requests")
+def get_all_requests():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row 
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, filename, status, created_at FROM requests ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [dict(row) for row in rows]
 
 @app.get("/{filename}")
 def serve_static_file(filename: str):

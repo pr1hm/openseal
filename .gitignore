@@ -7,5 +7,5 @@ __pycache__/
 
 *.sqlite
 *.db
-
+misc/*.md
 static/signed_*.pdf
