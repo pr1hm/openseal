@@ -43,7 +43,7 @@ body {
 }
 
 #sig-box:active {
-    cursor: grabbing;
+    cursor: grabbing !important;
 }
 
 #sig-pad-container {
@@ -57,7 +57,7 @@ body {
     border: 2px solid #333;
     background: white;
     cursor: crosshair;
-    touch-action: none;
+    touch-action: none !important;
 }
 
 button {
@@ -69,8 +69,6 @@ button {
 
 #target-box {
     position: absolute;
-    border: 2px solid blue;
-    background: rgba(0, 0, 255, 0.1);
     display: none;
-    pointer-events: none;
+    pointer-events: auto;
 }
