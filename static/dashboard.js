@@ -34,7 +34,7 @@ async function loadDashboard() {
             }
 
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition";
+            tr.className = "transition";
             tr.innerHTML = `
                 <td class="p-5 font-medium text-gray-900">${doc.filename}</td>
                 <td class=p-5 text-gray-500 text-sm">${date}</td>
