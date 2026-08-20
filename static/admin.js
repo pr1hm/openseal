@@ -101,7 +101,13 @@ async function generateLink() {
     });
 
     const result = await response.json();
-    prompt("Signature request created! Copy this link to send to the signer:", result.link);
+    
+    navigator.clipboard.writeText(result.link).then(() => {
+        alert("Success! The signature link has been copies to your clipboard.\n\nLink: " + result.link);
+        window.location.href = "/";
+    }).catch(err => {
+        prompt("Signature request created! Copy this link:", result.link);
+    });
 }
 
 const box = document.getElementById('sig-box');

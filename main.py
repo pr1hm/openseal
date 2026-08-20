@@ -11,11 +11,20 @@ import uvicorn
 import sqlite3
 import uuid
 
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app = FastAPI()
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 DB_FILE = os.path.join(BASE_DIR, "signatures.db")
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(
+        os.path.join(BASE_DIR, "favicon.gif"),
+        media_type="image/gif",
+    )
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
