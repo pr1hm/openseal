@@ -56,28 +56,42 @@ initSigner();
 const sigCanvas = document.getElementById('sig-canvas');
 const sigCtx = sigCanvas.getContext('2d');
 let isDrawing = false;
+
 sigCtx.lineWidth = 3;
 sigCtx.lineCap = 'round';
 sigCtx.strokeStyle = 'black';
+
+function startPosition(e) {
+    isDrawing = true;
+    const rect = sigCanvas.getBoundingClientRect();
+    const clientX = e.clientX ?? e.touches[0].clientX;
+    const clientY = e.clientY ?? e.touches[0].clientY;
+
+    sigCtx.beginPath();
+    sigCtx.moveTo(clientX - rect.left, clientY - rect.top);
+}
 
 function draw(e) {
     if (!isDrawing) return;
     const rect = sigCanvas.getBoundingClientRect();
     const clientX = e.clientX ?? e.touches[0].clientX;
     const clientY = e.clientY ?? e.touches[0].clientY;
+
     sigCtx.lineTo(clientX - rect.left, clientY - rect.top);
     sigCtx.stroke();
-    sigCtx.beginPath();
-    sigCtx.moveTo(clientX - rect.left, clientY - rect.top);
 }
 
-sigCanvas.addEventListener('mousedown', (e) => {isDrawing=true; draw(e);});
-sigCanvas.addEventListener('mousemove', draw);
-window.addEventListener('mouseup', () => {isDrawing = false; siggCtx.beginPath();});
+function endPosition() {
+    isDrawing = false;
+}
 
-sigCanvas.addEventListener('touchstart', (e) => {isDrawing = true; draw(e);});
+sigCanvas.addEventListener('mousedown', startPosition);
+sigCanvas.addEventListener('mousemove', draw);
+window.addEventListener('mouseup', endPosition);
+
+sigCanvas.addEventListener('touchstart', startPosition);
 sigCanvas.addEventListener('touchmove', draw);
-window.addEventListener('touchend', () => {isDrawing = false; sigCtx.beginPath();});
+window.addEventListener('touchend', endPosition);
 
 function clearCanvas() {
     sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
