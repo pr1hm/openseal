@@ -53,7 +53,7 @@ def generate_link(data: LinkRequest):
     conn.commit()
     conn.close()
 
-    return {"link": f"http://localhost:800/sign/{doc_id}"}
+    return {"link": f"http://localhost:8000/sign/{doc_id}"}
 
 @app.get("/sign/{doc_id}", response_class=HTMLResponse)
 def sign_page(doc_id: str):
