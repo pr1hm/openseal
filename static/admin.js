@@ -1,18 +1,18 @@
 let pdfDoc = null;
 let pageNum = 1;
 let CURRENT_SCALE = 1.0;
+let uploadedFilename = null;
 
-const url = '/static/dummy.pdf';
 const canvas = document.getElementById('pdf-render');
 const ctx = canvas.getContext('2d');
 
-function renderPage(num){
+function renderPage(num) {
     pdfDoc.getPage(num).then(page => {
-        const unscaledViewport = page.getViewport({scale:1.0});
-        const targetHeight= window.innerHeight*0.8;
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        const targetHeight = window.innerHeight * 0.8;
         CURRENT_SCALE = targetHeight / unscaledViewport.height;
 
-        const viewport = page.getViewport({scale: CURRENT_SCALE});
+        const viewport = page.getViewport({ scale: CURRENT_SCALE });
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
@@ -23,13 +23,45 @@ function renderPage(num){
     })
 }
 
+async function uploadedDocument() {
+    const fileInput = document.getElementById('pdf-upload');
+    if (fileInput.files.length === 0) return alert("Please select a PDF file first.");
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            uploadedFilename = result.filename;
+
+            document.getElementById('upload-section').style.display = 'none';
+            document.getElementById('workspace').style.display = 'flex';
+
+            loadPDF(result.url);
+        } else {
+            alert(result.detail);
+        }
+    } catch (err) {
+        alert("Upload failed: " + err.message);
+    }
+}
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-pdfjsLib.getDocument(url).promise.then(pdf => {
-    console.log("PDF Loaded!");
-    pdfDoc = pdf;
-    renderPage(pageNum);
-}).catch(err => console.error("PDF Error:", err));
+function loadPDF(pdfUrl) {
+    pdfjsLib.getDocument(pdfUrl).promise.then(pdf => {
+        console.log("PDF Loaded!");
+        pdfDoc = pdf;
+        renderPage(pageNum);
+    }).catch(err => console.error("PDF Error:", err));
+}
 
 document.getElementById('prev-page').addEventListener('click', () => {
     if (pageNum <= 1) return;
@@ -55,10 +87,11 @@ async function generateLink() {
     const pdfWidth = boxRect.width / CURRENT_SCALE;
     const pdfHeight = boxRect.height / CURRENT_SCALE;
 
-    const response = await fetch('/generate-link' , {
+    const response = await fetch('/generate-link', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+            filename: uploadedFilename,
             x: pdfX,
             y: pdfY,
             width: pdfWidth,

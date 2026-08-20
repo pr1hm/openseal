@@ -1,3 +1,4 @@
+import shutil
 import base64
 import fitz
 from pydantic import BaseModel
@@ -5,6 +6,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi import UploadFile, File
 import uvicorn
 import sqlite3
 import uuid
@@ -18,7 +20,7 @@ DB_FILE = os.path.join(BASE_DIR, "signatures.db")
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, x REAL, y REAL, width REAL, height REAL, page_num INTEGER, status TEXT DEFAULT 'pending')")
+    cursor.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, filename TEXT, x REAL, y REAL, width REAL, height REAL, page_num INTEGER, status TEXT DEFAULT 'pending')")
     conn.commit()
     conn.close()
 
@@ -31,6 +33,7 @@ class SignData(BaseModel):
     image_base64: str
 
 class LinkRequest(BaseModel):
+    filename: str
     x: float
     y: float
     width: float
@@ -46,10 +49,9 @@ def read_root():
 @app.post("/generate-link")
 def generate_link(data: LinkRequest):
     doc_id=str(uuid.uuid4())
-
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO requests (id, x, y, width, height, page_num) VALUES (?, ?, ?, ?, ?, ?)", (doc_id, data.x, data.y, data.width, data.height, data.page_num))
+    cursor.execute("INSERT INTO requests (id, filename, x, y, width, height, page_num) VALUES (?, ?, ?, ?, ?, ?, ?)", (doc_id, data.filename, data.x, data.y, data.width, data.height, data.page_num))
     conn.commit()
     conn.close()
 
@@ -61,11 +63,24 @@ def sign_page(doc_id: str):
     with open(path, "r") as f:
         return f.read()
 
+@app.post("/api/upload")
+def upload_file(file: UploadFile = File(...)):
+    if not file.filename.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Must be a PDF file")
+
+    unique_filename = f"{uuid.uuid4()}_{file.filename}"
+    file_path = os.path.join(STATIC_DIR, unique_filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"filename": unique_filename, "url": f"/static/{unique_filename}"}
+
 @app.get("/api/doc/{doc_id}")
 def get_document_info(doc_id: str):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT x, y, width, height, page_num, status FROM requests WHERE id=?", (doc_id,))
+    cursor.execute("SELECT x, y, width, height, page_num, status, filename FROM requests WHERE id=?", (doc_id,))
     row = cursor.fetchone()
     conn.close()
 
@@ -73,26 +88,27 @@ def get_document_info(doc_id: str):
         raise HTTPException(status_code=404, detail="Document not found")
 
     return {
-        "x": row[0], "y": row[1], "width": row[2], "height": row[3], "page_num": row[4], "status": row[5]
+        "x": row[0], "y": row[1], "width": row[2], "height": row[3], "page_num": row[4], "status": row[5],
+        "filename": row[6]
     }
 
 @app.post("/stamp/{doc_id}")
 def sign_document(doc_id: str, data: SignData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT x, y, width, height, page_num, status FROM requests WHERE id=?", (doc_id,))
+    cursor.execute("SELECT x, y, width, height, page_num, status, filename FROM requests WHERE id=?", (doc_id,))
     row = cursor.fetchone()
 
     if not row or row[5] == 'signed':
         conn.close()
         raise HTTPException(status_code=400, detail="Invalid or already signed document.")
 
-    x, y, width, height, page_num, status = row
+    x, y, width, height, page_num, status, filename = row
 
     header, encoded = data.image_base64.split(",", 1)
     image_bytes = base64.b64decode(encoded)
 
-    input_pdf = os.path.join(STATIC_DIR, "dummy.pdf")
+    input_pdf = os.path.join(STATIC_DIR, filename)
     output_pdf = os.path.join(STATIC_DIR, f"signed_{doc_id}.pdf")
 
     doc = fitz.open(input_pdf)

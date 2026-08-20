@@ -1,33 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenSeal Prototype</title>
     <!-- Load vanilla PDF.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <link rel="stylesheet" href="/static/style.css" />
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-
+  </head>
+  <body>
     <h2>Admin View: Drag the Signature Box</h2>
-    <p>Coordinates: <span id="coords">X: 50, Y: 50</span></p>
-
-    <div id="pagination-controls">
-        <button id="prev-page" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">Previous</button>
-        <span id="page-info" class="font-bold">Page 1</span>
-        <button id="next-page" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">Next</button>
+    <div
+      id="upload-section"
+      class="mb-6 p-6 bg-white shadow rounded border border-gray-300 w-full max-w-lg text-center"
+    >
+      <h3 class="font-bold mb-4">step 1: Upload a PDF</h3>
+      <input
+        type="file"
+        id="pdf-upload"
+        accept="application/pdf"
+        class="mb-4 w-full"
+      />
+      <button
+        onclick="uploadedDocument()"
+        class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 w-full"
+      >
+        Upload and Continue
+      </button>
     </div>
-    <div id="pdf-container">
+
+    <div id="workspace" class="items-center;">
+      <p>Coordinates: <span id="coords">X: 50, Y: 50</span></p>
+
+      <div id="pagination-controls">
+        <button
+          id="prev-page"
+          class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">
+          Previous
+        </button>
+        <span id="page-info" class="font-bold">Page 1</span>
+        <button
+          id="next-page"
+          class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">
+          Next
+        </button>
+      </div>
+      <div id="pdf-container">
         <!-- The PDF renders here -->
         <canvas id="pdf-render"></canvas>
         <!-- The draggable box -->
         <div id="sig-box">Sign Here</div>
-    </div>
-    <div>
-        <button onclick="generateLink()">Save & Stamp Document</button>
+      </div>
+      <button onclick="generateLink()">Generate Signature Link</button>
     </div>
     <script src="/static/admin.js"></script>
-</body>
+  </body>
 </html>

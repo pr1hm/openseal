@@ -1,7 +1,6 @@
 const cleanPath = window.location.pathname.replace(/\/$/, "");
 const docId = cleanPath.substring(cleanPath.lastIndexOf('/') + 1);
 console.log("extracted Document ID:", docId);
-const url = '/static/dummy.pdf';
 let docData = null;
 let CURRENT_SCALE = 1.0;
 
@@ -24,7 +23,8 @@ async function initSigner() {
             return;
         }
 
-        const pdf = await pdfjsLib.getDocument(url).promise;
+        const pdfUrl = `/static/${docData.filename}`
+        const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
         const page = await pdf.getPage(docData.page_num);
 
         const canvas = document.getElementById('pdf-render');
