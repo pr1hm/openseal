@@ -101,9 +101,11 @@ async function generateLink() {
     });
 
     const result = await response.json();
+    const docId = result.link.split('/').pop();
+    const productionLink = `${window.location.origin}/sign/${docId}`;
     
     navigator.clipboard.writeText(result.link).then(() => {
-        alert("Success! The signature link has been copies to your clipboard.\n\nLink: " + result.link);
+        alert("Success! The signature link has been copies to your clipboard.\n\nLink: " + productionLink);
         window.location.href = "/";
     }).catch(err => {
         prompt("Signature request created! Copy this link:", result.link);

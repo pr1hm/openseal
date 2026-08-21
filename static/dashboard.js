@@ -37,7 +37,7 @@ async function loadDashboard() {
             tr.className = "transition";
             tr.innerHTML = `
                 <td class="p-5 font-medium text-gray-900">${doc.filename}</td>
-                <td class=p-5 text-gray-500 text-sm">${date}</td>
+                <td class="p-5 text-gray-500 text-sm">${date}</td>
                 <td class="p-5">${statusBadge}</td>
                 <td class="p-5 text-right">${actionButton}</td>
             `;
