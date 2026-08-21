@@ -104,7 +104,7 @@ async function generateLink() {
     const docId = result.link.split('/').pop();
     const productionLink = `${window.location.origin}/sign/${docId}`;
     
-    navigator.clipboard.writeText(result.link).then(() => {
+    navigator.clipboard.writeText(productionLink).then(() => {
         alert("Success! The signature link has been copies to your clipboard.\n\nLink: " + productionLink);
         window.location.href = "/";
     }).catch(err => {
