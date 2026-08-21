@@ -108,7 +108,7 @@ async function generateLink() {
         alert("Success! The signature link has been copies to your clipboard.\n\nLink: " + productionLink);
         window.location.href = "/";
     }).catch(err => {
-        prompt("Signature request created! Copy this link:", result.link);
+        prompt("Signature request created! Copy this link:", productionLink);
     });
 }
 
