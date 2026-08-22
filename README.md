@@ -65,3 +65,12 @@ I know there are many things that need to update. But let's be real. Do you real
 But I know what I've done. And a little disclaimer that admin sided pages (like `/` or `/new-request`), aren't optimized for mobile view. 
 
 But the signer can absolutely sign the document in mobile..
+
+## AI Usage?
+
+I know AI might have done this whole app under few mins. But.. where wil be fun in that.
+
+Well. I only used AI to find typos and debugging and to generate commit messages. 
+Because hey.. who will not love a free commit message on what you did?
+
+you knoww, it comes free now a days to generate commit message in VSCode's git / version control system.
