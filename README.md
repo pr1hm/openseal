@@ -10,7 +10,7 @@ Here's the complete screen recording of the whole flow from uploading to signing
   <source src="./static/openseal-demo.mp4" type="video/mp4">
   Sorry, your browser doesn't support embedded videos.
 </video>
-
+<img src="./static/openseal-demo.gif"/>
 <p align="center">
   <img src="./static/dashboard-image.png" width="22%" />
   <img src="./static/new-request-image.png" width="22%" />
